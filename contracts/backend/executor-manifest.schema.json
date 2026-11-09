@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocol": {
+      "const": 1
+    },
+    "executor_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "os": {
+      "enum": [
+        "linux",
+        "darwin",
+        "windows"
+      ]
+    },
+    "arch": {
+      "enum": [
+        "amd64",
+        "arm64"
+      ]
+    }
+  },
+  "required": [
+    "protocol",
+    "executor_sha",
+    "sha256",
+    "os",
+    "arch"
+  ]
+}

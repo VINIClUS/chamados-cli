@@ -1,0 +1,7 @@
+# Development only; never installed by application/CI.
+z3-solver==4.15.4.0
+paramiko==4.0.0
+ruff==0.17.4
+ty==0.0.99
+pytest==9.0.2
+PyYAML==6.0.3

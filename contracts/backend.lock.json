@@ -1,0 +1,34 @@
+{
+  "backend_sha": "c2ac5be76d67193055e11e2f46c35e21472fc6c3",
+  "files": {
+    "backup-manifest.schema.json": {
+      "sha256": "7eb721ef6b805682c082ff354a11bea18d229514c183aadc3b27f4926c3ec4f8",
+      "size": 2310
+    },
+    "executor-manifest.schema.json": {
+      "sha256": "a348e7d763037d0b210bfc4ef7b3e9d8927c7886eecfc74d0341bee4aeb63626",
+      "size": 615
+    },
+    "openapi.yaml": {
+      "sha256": "efa3549c818b418d2204a30d1e9ca263c16e299477ad8af2629feaacfba3232d",
+      "size": 320390
+    },
+    "operations-input.schema.json": {
+      "sha256": "4d962650cd52657269182f9f5b081bf602ad2bc9e8a566518d6a79f0a14ee605",
+      "size": 1655
+    },
+    "operations-result.schema.json": {
+      "sha256": "7cbb33821573ff537300ca325bd6e3c42edfc20111a9429c81cc1caebcb5f382",
+      "size": 1821
+    },
+    "responses.json": {
+      "sha256": "d147082dac592ea7e15dcd536ed92bd13b099b2c514d204a3f2c563366c64e43",
+      "size": 206822
+    }
+  },
+  "manifest_sha256": "12d0af49a6887ee9f4ef6ca3ccad0a28c97994dc40c5ccea81a4ca52a404d67a",
+  "package_url": "https://gitlab.com/api/v4/projects/74155066/packages/generic/backend-contracts/c2ac5be76d67193055e11e2f46c35e21472fc6c3",
+  "project_id": "74155066",
+  "registry_url": "https://gitlab.com/api/v4",
+  "schema_version": 1
+}

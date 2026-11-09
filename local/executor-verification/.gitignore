@@ -1,0 +1,6 @@
+.venv/
+bin/
+reports/
+.run.lock
+.ruff_cache/
+.ty_cache/

@@ -1,0 +1,52 @@
+version: "2"
+run:
+  concurrency: 1
+  timeout: 10m
+linters:
+  default: none
+  enable:
+    - errcheck
+    - staticcheck
+    - ineffassign
+    - unused
+    - errorlint
+    - bodyclose
+    - gosec
+    - gocyclo
+    - gocognit
+    - maintidx
+    - funlen
+    - dupl
+  settings:
+    gocyclo:
+      min-complexity: 15
+    gocognit:
+      min-complexity: 15
+    maintidx:
+      under: 80
+    funlen:
+      lines: 200
+      statements: 80
+    dupl:
+      threshold: 300
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gocyclo, gocognit, maintidx, funlen, dupl]
+formatters:
+  enable: [gofmt, goimports, golines]
+  settings:
+    golines:
+      max-len: 120
+      tab-len: 8
+      shorten-comments: false
+output:
+  formats:
+    text:
+      path: stdout
+    code-climate:
+      path: .quality/gl-code-quality-report.json
+issues:
+  uniq-by-line: false
+  max-issues-per-linter: 0
+  max-same-issues: 0

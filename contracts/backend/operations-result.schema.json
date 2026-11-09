@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "executor_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "backend_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "operation": {
+      "enum": [
+        "deploy",
+        "status",
+        "logs",
+        "health",
+        "smoke",
+        "restart",
+        "reset",
+        "backup",
+        "restore",
+        "cleanup"
+      ]
+    },
+    "environment": {
+      "enum": [
+        "staging",
+        "production"
+      ]
+    },
+    "status": {
+      "enum": [
+        "running",
+        "success",
+        "failed",
+        "interrupted"
+      ]
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^([0-9a-f]{12}|[0-9a-f]{40})?$"
+    },
+    "backup_id": {
+      "type": "string"
+    },
+    "deployment_id": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "data": {},
+    "operation_id": {
+      "type": "string",
+      "pattern": "^[0-9]+-[0-9]+$"
+    },
+    "phase": {
+      "type": "string"
+    },
+    "applied": {
+      "type": "boolean"
+    },
+    "error": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "exit_code": {
+          "type": "integer"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code",
+        "phase"
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "operation",
+    "environment",
+    "status",
+    "revision"
+  ]
+}
