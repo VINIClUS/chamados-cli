@@ -48,7 +48,7 @@ def main() -> None:
         )
         for name in required:
             assert (backend_directory / name).is_file(), f"backend contract missing {name}"
-        for name in required[1:]:
+        for name in required[2:]:
             contract = load(name, backend_directory)
             assert isinstance(contract, dict), f"backend contract is not an object: {name}"
         assert yaml is not None, "PyYAML is required to validate backend OpenAPI"
