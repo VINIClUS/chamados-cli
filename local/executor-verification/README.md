@@ -1,21 +1,21 @@
 # MR !22: verificação exclusivamente local
 
-Esta suíte não participa do CI. O módulo Go aninhado a exclui de `go test ./...` em ``;
+Esta suíte não participa do CI. O módulo Go aninhado é excluído de `go test ./...`;
 os programas Python não usam nomes descobertos por pytest e ficam fora de `tests/`.
 Z3/Paramiko são dependências de desenvolvimento, instaladas somente em `.venv/`.
 Os executáveis usados são construídos a partir do checkout atual. Nenhum servidor real é acessado.
 O registro da última validação está em [RESULTS.md](RESULTS.md).
 
-Execute da raiz, sempre com RTK:
+Execute da raiz:
 
 ```sh
-rtk proxy python3 local/executor-verification/run.py setup
-rtk proxy python3 local/executor-verification/run.py smt
-rtk proxy python3 local/executor-verification/run.py integration
-rtk proxy python3 local/executor-verification/run.py unit
-rtk proxy python3 local/executor-verification/run.py contracts
-rtk proxy python3 local/executor-verification/run.py checks
-rtk proxy python3 local/executor-verification/run.py python-checks
+python3 local/executor-verification/run.py setup
+python3 local/executor-verification/run.py smt
+python3 local/executor-verification/run.py integration
+python3 local/executor-verification/run.py unit
+python3 local/executor-verification/run.py contracts
+python3 local/executor-verification/run.py checks
+python3 local/executor-verification/run.py python-checks
 ```
 
 Todos os comandos compartilham um lock, esperam `MemAvailable >= 3 GiB` e `load1 <= 4`
@@ -73,7 +73,7 @@ de contrato e comprovação de paridade. Esta suíte não declara o lint limpo; 
 informativos conhecidos da sessão 1 continuam registrados em `.quality/`.
 
 `python-checks` executa Ruff (lint e verificação de formato) e ty sobre todo o Python
-de ``, usando o ambiente virtual da suíte. `python-fmt` aplica os ajustes de
+do repositório, usando o ambiente virtual da suíte. `python-fmt` aplica os ajustes de
 Ruff e executa ty. As versões estão fixadas em `requirements.txt`. A configuração
 geral está em `pyproject.toml`; esta suíte tem sua própria configuração
 local. As referências legadas mantêm sintaxe compatível com Python 3.10.

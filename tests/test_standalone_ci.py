@@ -8,6 +8,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class StandaloneCI(unittest.TestCase):
+    def test_python_dependencies_are_available_before_contract_validation(self):
+        for name in ('ci.yml', 'release.yml'):
+            workflow = (ROOT / '.github/workflows' / name).read_text()
+            self.assertLess(workflow.index('pip install'), workflow.index('scripts/cli/check-contracts.py'), name)
+
     def test_ci_runs_contracts_tests_and_six_platform_build(self):
         workflow = (ROOT / ".github/workflows/ci.yml").read_text()
         self.assertIn("go test -race ./...", workflow)

@@ -5,3 +5,6 @@
 /.ops-data.json
 /operation-result.json
 /.quality/
+
+__pycache__/
+*.pyc

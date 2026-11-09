@@ -1,13 +1,22 @@
 # CLI contracts
 
-The operation input/result schemas and executor artifact manifest are versioned
-with the standalone CLI. `executor_sha` identifies the immutable CLI artifact;
+The Backend publishes the authoritative snapshot in `backend/`, pinned by
+`backend.lock.json`. Builds and CI use these versioned files without GitLab
+credentials. `executor_sha` identifies the immutable CLI artifact;
 `backend_sha` identifies the protected backend checkout used by the operation;
 `revision` remains the requested application revision.
 
-`backup-manifest.schema.json` documents the backup archive manifest validated by
-the restore path. It is kept alongside the three runner wire contracts while
-the backend package snapshot remains the synchronization authority.
+`backend/backup-manifest.schema.json` documents the backup archive manifest
+validated by the restore path. Go tests validate serialized requests, results,
+the actual binary identity, and backup manifests against these pinned schemas.
 
-The backend OpenAPI snapshot is synchronized separately by the backend project
-under `contracts/backend/` and is not copied into this repository.
+Updates require Python 3, PyYAML 6.0.3, and a private `GITLAB_TOKEN` in the
+environment. Choose the Backend commit and its published manifest checksum:
+
+```sh
+python3 scripts/update-backend-contracts.py --backend-sha FULL_SHA --manifest-sha256 SHA256
+python3 scripts/update-backend-contracts.py --check
+```
+
+The updater validates provenance, file checksums, and the OpenAPI structure
+before replacing the snapshot. Review the snapshot and lock together in a PR.

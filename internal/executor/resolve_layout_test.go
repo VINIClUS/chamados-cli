@@ -17,6 +17,11 @@ import (
 // directory of a clone, as ops:resolve does. Names in executable get the exec bit.
 func resolveSource(t *testing.T, files map[string]string, executable ...string) map[string]*tar.Header {
 	t.Helper()
+	// A parent Git hook/checkout may export these variables. Fixtures must use
+	// only the repository passed through -C, never inherited repository state.
+	t.Setenv("GIT_DIR", filepath.Join(t.TempDir(), "unrelated.git"))
+	t.Setenv("GIT_WORK_TREE", filepath.Join(t.TempDir(), "unrelated-worktree"))
+	t.Setenv("GIT_COMMON_DIR", filepath.Join(t.TempDir(), "unrelated-common"))
 	root := t.TempDir()
 	origin := filepath.Join(root, "origin")
 	if err := os.MkdirAll(filepath.Join(origin, "devops"), 0700); err != nil {

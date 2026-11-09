@@ -12,7 +12,7 @@ ROOT = HERE.parent.parent
 
 
 def call(*command, cwd=HERE):
-    subprocess.run(["rtk", "proxy", *map(str, command)], cwd=cwd, check=True)
+    subprocess.run(list(map(str, command)), cwd=cwd, check=True)
 
 
 def build_binaries():
@@ -47,7 +47,7 @@ def main():
         "memory_high": (scope / "memory.high").read_text().strip(),
         "memory_max": (scope / "memory.max").read_text().strip(),
         "nice": os.getpriority(os.PRIO_PROCESS, 0),
-        "io_priority": subprocess.check_output(["rtk", "proxy", "ionice", "-p", str(os.getpid())]).decode().strip(),
+        "io_priority": subprocess.check_output(["ionice", "-p", str(os.getpid())]).decode().strip(),
     }
     assert metadata["memory_max"] == "1610612736" and metadata["memory_high"] == "1073741824"
     quota, period = map(int, metadata["cpu_max"].split())
@@ -63,6 +63,7 @@ def main():
     elif suite == "unit":
         call("go", "test", "-p=1", "-parallel=1", "./...", cwd=ROOT)
     elif suite == "contracts":
+        call(python, HERE / "runtime_test.py")
         call(python, "-m", "pytest", "-q", "tests", cwd=ROOT)
         scripts = [
             *sorted((ROOT / "scripts/cli").glob("*.sh")),
@@ -76,7 +77,7 @@ def main():
         call("go", "vet", "./...", cwd=ROOT)
         call("go", "test", "-race", "-p=1", "-parallel=1", "./...", cwd=ROOT)
         quality = subprocess.run(
-            ["rtk", "proxy", "bash", "scripts/cli/quality.sh", "check"], cwd=ROOT, capture_output=True
+            ["bash", "scripts/cli/quality.sh", "check"], cwd=ROOT, capture_output=True
         )
         (reports / "quality.log").write_bytes(quality.stdout + quality.stderr)
         status = (ROOT / ".quality/status.txt").read_text()
@@ -97,8 +98,6 @@ def main():
             call(ruff, "format", "--check", ROOT)
         typed = subprocess.run(
             [
-                "rtk",
-                "proxy",
                 str(ty),
                 "check",
                 "--python",
@@ -115,8 +114,8 @@ def main():
         print(typed.stdout.decode() + typed.stderr.decode())
         typed.check_returncode()
         versions = {
-            "ruff": subprocess.check_output(["rtk", "proxy", str(ruff), "--version"]).decode().strip(),
-            "ty": subprocess.check_output(["rtk", "proxy", str(ty), "--version"]).decode().strip(),
+            "ruff": subprocess.check_output([str(ruff), "--version"]).decode().strip(),
+            "ty": subprocess.check_output([str(ty), "--version"]).decode().strip(),
         }
         if suite == "python-checks":
             (reports / "python-checks.json").write_text(

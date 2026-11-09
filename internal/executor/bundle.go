@@ -16,16 +16,38 @@ func protectedToolingFiles() [][2]string {
 		{"scripts/deploy/docker-compose.staging.yml", "tooling/deploy/docker-compose.staging.yml"},
 		{"scripts/deploy/docker-compose.production.yml", "tooling/deploy/docker-compose.production.yml"},
 	}
+	currentComplete := true
 	for _, file := range current {
 		if _, err := os.Stat(file[0]); err != nil {
-			return [][2]string{
-				{filepath.Join("..", "infrastructure", "scripts/bootstrap-host.sh"), "tooling/deploy/bootstrap-host.sh"},
-				{filepath.Join("..", "infrastructure", "environments/docker-compose.staging.yml"), "tooling/deploy/docker-compose.staging.yml"},
-				{filepath.Join("..", "infrastructure", "environments/docker-compose.production.yml"), "tooling/deploy/docker-compose.production.yml"},
-			}
+			currentComplete = false
+			break
 		}
 	}
-	return current
+	if currentComplete {
+		return current
+	}
+	for _, base := range []string{"infrastructure", filepath.Join("..", "infrastructure")} {
+		legacy := [][2]string{
+			{filepath.Join(base, "scripts/bootstrap-host.sh"), "tooling/deploy/bootstrap-host.sh"},
+			{filepath.Join(base, "environments/docker-compose.staging.yml"), "tooling/deploy/docker-compose.staging.yml"},
+			{filepath.Join(base, "environments/docker-compose.production.yml"), "tooling/deploy/docker-compose.production.yml"},
+		}
+		complete := true
+		for _, file := range legacy {
+			if _, err := os.Stat(file[0]); err != nil {
+				complete = false
+				break
+			}
+		}
+		if complete {
+			return legacy
+		}
+	}
+	return [][2]string{
+		{filepath.Join("infrastructure", "scripts/bootstrap-host.sh"), "tooling/deploy/bootstrap-host.sh"},
+		{filepath.Join("infrastructure", "environments/docker-compose.staging.yml"), "tooling/deploy/docker-compose.staging.yml"},
+		{filepath.Join("infrastructure", "environments/docker-compose.production.yml"), "tooling/deploy/docker-compose.production.yml"},
+	}
 }
 
 func writeBundle(writer io.Writer, options RunnerOptions, includeSource bool) error {

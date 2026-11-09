@@ -28,10 +28,20 @@ ROUND_DEADLINE: float | None = None
 def command(*args, cwd=None, env=None, data=None, check=True, timeout=45):
     if ROUND_DEADLINE is not None:
         timeout = min(timeout, max(0.001, ROUND_DEADLINE - time.monotonic()))
+    clean_env = dict(os.environ if env is None else env)
+    for key in (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    ):
+        clean_env.pop(key, None)
     process = subprocess.Popen(
-        ["rtk", "proxy", *map(str, args)],
+        list(map(str, args)),
         cwd=cwd,
-        env=env,
+        env=clean_env,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

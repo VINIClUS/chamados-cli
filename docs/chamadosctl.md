@@ -7,8 +7,8 @@ Os comandos públicos continuam usando somente a API do GitLab no computador do 
 
 ## Instalação e autenticação
 
-Baixe o executável do seu sistema/arquitetura no Release `cli-vX.Y.Z` do projeto
-`portosoftware/SistemaDeChamados`. Há versões Linux, macOS e Windows, amd64 e arm64.
+Baixe o executável do seu sistema/arquitetura no Release `cli-vX.Y.Z` de
+[GitHub Releases](https://github.com/VINIClUS/chamados-cli/releases). Há versões Linux, macOS e Windows, amd64 e arm64.
 Compare o SHA-256 com `SHA256SUMS`. Em Linux/macOS, conceda permissão de execução;
 no Windows, use o arquivo `.exe`. Renomeie para `chamadosctl` se desejar.
 
@@ -106,9 +106,10 @@ Os ambientes são `sistema/staging` e `sistema/production`, separados dos escopo
 de assinatura do Android. Cada ambiente tem uma fila e o bloqueio remoto
 `/opt/chamados/.deploy.lock` para serializar operações.
 
-Merges e tags do sistema não fazem mais deploy automático. Os testes e as
-publicações Android mantêm seus fluxos. Tags `cli-vX.Y.Z` publicam apenas a CLI;
-tags `vX.Y.Z` identificam versões do sistema e `android-vX.Y.Z` identificam o Android.
+Merges em `main` do Backend continuam publicando staging automaticamente; tags
+`vX.Y.Z` publicam produção. Uma operação explícita usa somente seus próprios
+jobs. Tags `cli-vX.Y.Z` publicam a CLI no GitHub; o Android tem CI e tags
+`android-vX.Y.Z` em [chamados-mobile](https://github.com/VINIClUS/chamados-mobile).
 
 Para compilar localmente (somente para desenvolvimento):
 
@@ -162,7 +163,7 @@ o ID e `applied` no resultado, para distinguir execução de registro.
 `bash scripts/cli/quality.sh check` verifica formatação e executa golangci-lint
 v2.15.0; `bash scripts/cli/quality.sh fmt` aplica gofmt/goimports e organiza linhas longas com golines (120 colunas).
 O script confere o checksum da distribuição antes de instalar a ferramenta local.
-O conjunto inclui a análise de segurança `gosec`. No CI, `cli:quality` é informativo: publica Code Climate, diff e logs mesmo com
+O conjunto inclui a análise de segurança `gosec`. A execução local de `scripts/cli/quality.sh` produz Code Climate, diff e logs mesmo com
 avisos. Não é dependência de release. Testes e checks existentes continuam como
 antes. Complexidade ciclomática/cognitiva avisa a partir de 15; manutenibilidade
 abaixo de 80 (limiar rigoroso); tamanho acima de 200 linhas/80 instruções; duplicação usa 300 tokens.
@@ -179,20 +180,9 @@ O helper de anexos recebe identidade própria e é removido após falha. O backe
 fica parado, e `data.safety_backup_id` informa o backup para recuperação explícita.
 Um timeout apenas do health check mantém PostgreSQL disponível para inspeção.
 
-## Kit privado de acesso
+## Administração do runner
 
-A pasta privada do Google Drive `SistemaDeChamados - Deploy & Operations` contém
-as duas chaves SSH **locais** de administração e suas chaves públicas, exemplos de
-configuração, `known_hosts` do projeto e manifesto de origem/checksums.
-
-Essas chaves servem para administração e recuperação por quem alcança a rede dos
-CTs. Elas não são necessárias à CLI. As chaves do runner são diferentes, geradas no
-CT 182 e restritas ao IP de origem dele; permanecem lá. Para reconstruir o runner,
-um administrador com acesso ao Proxmox executa `infrastructure/scripts/setup-runner.sh`, que
-gera novas chaves, autoriza os destinos e fixa os hosts. A chave do Proxmox e as
-credenciais desse administrador são fornecidas separadamente.
-
-Ao reinstalar as chaves locais, restaure permissões privadas e instale o
-`known_hosts` do kit como `~/.ssh/chamados_known_hosts` antes de usar o exemplo SSH.
-As fingerprints foram obtidas por conexão já autenticada ao Proxmox, lendo as
-chaves públicas dos CTs 180 e 181. Uma mudança de fingerprint exige nova verificação.
+O operador da CLI usa somente a API do GitLab. Chaves SSH e ferramentas de
+administração permanecem com os administradores do Backend e não são distribuídas
+com o cliente. A reconstrução do runner e os acessos de recuperação estão no
+[runbook privado do Backend](https://gitlab.com/portosoftware/SistemaDeChamados/-/blob/main/docs/ci-cd.md).

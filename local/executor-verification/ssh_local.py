@@ -129,7 +129,7 @@ class LocalSSH:
             self.fixture.api.journal_path = journal
             self.fixture.save_control()
         process = subprocess.Popen(
-            ["rtk", "proxy", "sh", "-c", translated],
+            ["sh", "-c", translated],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

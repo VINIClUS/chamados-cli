@@ -58,8 +58,6 @@ def main():
             CHAMADOS_VERIFY_GATE_AVAILABLE_KIB=str(mem),
         )
         prefix = [
-            "rtk",
-            "proxy",
             "systemd-run",
             "--user",
             "--scope",
