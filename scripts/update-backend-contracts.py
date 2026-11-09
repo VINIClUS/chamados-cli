@@ -10,9 +10,76 @@ import shutil
 import tempfile
 import urllib.request
 
+try:
+    import yaml
+except ImportError:  # PyYAML is installed by CI before contract updates.
+    yaml = None
+
 REQUIRED = frozenset(('openapi.yaml', 'responses.json', 'operations-input.schema.json',
                       'operations-result.schema.json', 'executor-manifest.schema.json', 'backup-manifest.schema.json'))
 MAX_FILE_BYTES = 32 * 1024 * 1024
+
+
+def _pointer(document, reference):
+    if not isinstance(reference, str) or not reference.startswith("#/"):
+        raise ValueError("OpenAPI references must stay inside the snapshot")
+    current = document
+    for part in reference[2:].split("/"):
+        part = part.replace("~1", "/").replace("~0", "~")
+        if not isinstance(current, dict) or part not in current:
+            raise ValueError("OpenAPI reference points to a missing object: " + reference)
+        current = current[part]
+    return current
+
+
+def validate_openapi(raw):
+    if yaml is None:
+        raise ValueError("PyYAML is required for OpenAPI contract validation")
+    try:
+        document = yaml.safe_load(raw)
+    except yaml.YAMLError as error:
+        raise ValueError("Invalid OpenAPI YAML: " + str(error)) from error
+    if not isinstance(document, dict) or not isinstance(document.get("openapi"), str):
+        raise ValueError("OpenAPI document missing openapi version")
+    if not isinstance(document.get("info"), dict) or not document["info"].get("title"):
+        raise ValueError("OpenAPI document missing info.title")
+    paths = document.get("paths")
+    if not isinstance(paths, dict) or not paths:
+        raise ValueError("OpenAPI document must contain paths")
+    components = document.get("components")
+    if not isinstance(components, dict):
+        raise ValueError("OpenAPI document must contain components")
+    for path, item in paths.items():
+        if not isinstance(path, str) or not path.startswith("/") or not isinstance(item, dict):
+            raise ValueError("Invalid OpenAPI path item")
+        for method, operation in item.items():
+            if method not in {"get", "put", "post", "delete", "options", "head", "patch", "trace"}:
+                continue
+            if not isinstance(operation, dict):
+                raise ValueError("Invalid OpenAPI operation: " + path)
+            responses = operation.get("responses")
+            if not isinstance(responses, dict) or not responses:
+                raise ValueError("OpenAPI operation missing responses: " + path)
+            for code, response in responses.items():
+                if code != "default" and (not isinstance(code, str) or not code.isdigit() or len(code) != 3):
+                    raise ValueError("Invalid OpenAPI response code: " + str(code))
+                if not isinstance(response, dict) or ("$ref" not in response and "description" not in response):
+                    raise ValueError("OpenAPI response missing description: " + path)
+    refs = []
+
+    def collect(value):
+        if isinstance(value, dict):
+            if "$ref" in value:
+                refs.append(value["$ref"])
+            for nested in value.values():
+                collect(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                collect(nested)
+
+    collect(document)
+    for reference in refs:
+        _pointer(document, reference)
 
 
 def digest(raw):
@@ -53,6 +120,7 @@ def check(root):
     expected_url = lock['registry_url'].rstrip('/') + '/projects/' + str(lock['project_id']) + '/packages/generic/backend-contracts/' + lock['backend_sha']
     if lock.get('package_url') != expected_url:
         raise ValueError('Package location differs from lock provenance')
+    validate_openapi((directory / 'openapi.yaml').read_bytes())
     validate_files(directory, manifest)
 
 
@@ -91,6 +159,7 @@ def update(root, project, sha, expected, registry, package_dir=None, token_env='
         (staging / 'manifest.json').write_bytes(raw)
         for name in sorted(REQUIRED):
             (staging / name).write_bytes(fetch(name))
+        validate_openapi((staging / 'openapi.yaml').read_bytes())
         validate_files(staging, manifest)
         lock = {'schema_version': 1, 'project_id': str(project), 'backend_sha': sha,
                 'registry_url': registry.rstrip('/'), 'package_url': base,

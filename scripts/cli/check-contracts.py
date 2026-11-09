@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 try:
     import yaml
@@ -15,8 +17,8 @@ except ImportError:  # pragma: no cover - CI installs PyYAML
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def load(name: str) -> dict:
-    path = ROOT / "contracts" / name
+def load(name: str, directory: Path | None = None) -> dict:
+    path = (directory or (ROOT / "contracts")) / name
     value = json.loads(path.read_text(encoding="utf-8"))
     assert value["$schema"].startswith("https://json-schema.org/"), name
     assert value["type"] == "object" and value["additionalProperties"] is False, name
@@ -30,20 +32,25 @@ def main() -> None:
     backup_schema = load("backup-manifest.schema.json")
     assert set(input_schema["required"]) == {"operation", "environment", "ref", "tail"}
     assert set(result_schema["required"]) == {"schema_version", "operation", "environment", "status", "revision"}
+    assert {"executor_sha", "backend_sha"}.issubset(result_schema["properties"])
     assert set(manifest_schema["required"]) == {"protocol", "executor_sha", "sha256", "os", "arch"}
     assert set(backup_schema["required"]) >= {"schema_version", "environment", "revision", "members"}
     backend = ROOT / "contracts" / "backend" / "openapi.yaml"
     if backend.exists():
         backend_directory = backend.parent
-        for name in (
+        required = (
             "openapi.yaml",
             "responses.json",
             "operations-input.schema.json",
             "operations-result.schema.json",
             "executor-manifest.schema.json",
             "backup-manifest.schema.json",
-        ):
+        )
+        for name in required:
             assert (backend_directory / name).is_file(), f"backend contract missing {name}"
+        for name in required[1:]:
+            contract = load(name, backend_directory)
+            assert isinstance(contract, dict), f"backend contract is not an object: {name}"
         assert yaml is not None, "PyYAML is required to validate backend OpenAPI"
         document = yaml.safe_load(backend.read_text(encoding="utf-8"))
         assert isinstance(document, dict) and isinstance(document.get("openapi"), str)
@@ -64,6 +71,11 @@ def main() -> None:
                         schema = content.get("schema", {})
                         if "$ref" in schema:
                             assert schema["$ref"].startswith("#/components/")
+        subprocess.run(
+            [sys.executable, str(ROOT / "scripts/update-backend-contracts.py"), "--check"],
+            cwd=ROOT,
+            check=True,
+        )
     lock = ROOT / "contracts" / "backend.lock.json"
     if lock.exists():
         metadata = json.loads(lock.read_text(encoding="utf-8"))

@@ -12,6 +12,18 @@ SCRIPT = Path(__file__).parents[1] / 'update-backend-contracts.py'
 
 
 class SnapshotTest(unittest.TestCase):
+    OPENAPI = b"""openapi: 3.1.0
+info:
+  title: Fixture
+  version: v1
+paths:
+  /health:
+    get:
+      responses:
+        '200':
+          description: OK
+components: {}
+"""
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -26,7 +38,7 @@ class SnapshotTest(unittest.TestCase):
         self.files = {}
         for name in ('openapi.yaml', 'responses.json', 'operations-input.schema.json',
                      'operations-result.schema.json', 'executor-manifest.schema.json', 'backup-manifest.schema.json'):
-            content = b'{"fixture":true}\n'
+            content = self.OPENAPI if name == 'openapi.yaml' else b'{"fixture":true}\n'
             (self.package / name).write_bytes(content)
             self.files[name] = {'sha256': hashlib.sha256(content).hexdigest(), 'size': len(content)}
         self.write_manifest()
@@ -76,6 +88,35 @@ class SnapshotTest(unittest.TestCase):
 
     def test_invalid_checksum_preserves_previous_snapshot(self):
         (self.package / 'openapi.yaml').write_text('corrupt')
+        with self.assertRaises(ValueError):
+            self.update()
+        self.assert_preserved()
+
+    def test_invalid_openapi_structure_preserves_previous_snapshot(self):
+        content = b"openapi: 3.1.0\ninfo: {}\npaths: {}\ncomponents: {}\n"
+        (self.package / 'openapi.yaml').write_bytes(content)
+        self.files['openapi.yaml'] = {'sha256': hashlib.sha256(content).hexdigest(), 'size': len(content)}
+        self.write_manifest()
+        with self.assertRaises(ValueError):
+            self.update()
+        self.assert_preserved()
+
+    def test_unknown_openapi_ref_preserves_previous_snapshot(self):
+        content = b"""openapi: 3.1.0
+info:
+  title: Fixture
+  version: v1
+paths:
+  /health:
+    get:
+      responses:
+        '200':
+          $ref: '#/components/responses/Missing'
+components: {}
+"""
+        (self.package / 'openapi.yaml').write_bytes(content)
+        self.files['openapi.yaml'] = {'sha256': hashlib.sha256(content).hexdigest(), 'size': len(content)}
+        self.write_manifest()
         with self.assertRaises(ValueError):
             self.update()
         self.assert_preserved()
