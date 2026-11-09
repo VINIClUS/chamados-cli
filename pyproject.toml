@@ -1,0 +1,7 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+extend-exclude = [".quality", ".cli-dist", ".ops-source", ".ops-executor", ".ops-target"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]

@@ -1,0 +1,37 @@
+name: CLI checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Contract structure
+        run: python3 scripts/cli/check-contracts.py
+      - name: Contract snapshot updater tests
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Backend snapshot check
+        run: python3 scripts/update-backend-contracts.py --check
+      - name: Go tests
+        run: go test -race ./...
+      - name: Go vet
+        run: go vet ./...
+      - name: Python checks
+        run: |
+          python3 -m pip install --disable-pip-version-check pytest PyYAML
+          pytest -q
+      - name: Six-platform build
+        run: VERSION=dev CI_COMMIT_SHA="$GITHUB_SHA" scripts/cli/build.sh "$RUNNER_TEMP/cli-dist"

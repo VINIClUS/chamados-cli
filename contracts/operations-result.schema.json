@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/VINIClUS/chamados-cli/contracts/operations-result.schema.json",
+  "title": "Chamados operation result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "operation", "environment", "status", "revision"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "executor_sha": {"type": "string", "pattern": "^[a-fA-F0-9]{40}$"},
+    "backend_sha": {"type": "string", "pattern": "^[a-fA-F0-9]{40}$"},
+    "operation": {"type": "string", "enum": ["deploy", "status", "logs", "health", "smoke", "restart", "reset", "backup", "restore", "cleanup"]},
+    "environment": {"type": "string", "enum": ["staging", "production"]},
+    "status": {"type": "string", "enum": ["running", "success", "succeeded", "failed"]},
+    "revision": {"type": "string", "pattern": "^([a-fA-F0-9]{12}|[a-fA-F0-9]{40})?$"},
+    "backup_id": {"type": "string"},
+    "deployment_id": {"type": ["integer", "null"]},
+    "data": {},
+    "operation_id": {"type": "string", "pattern": "^[0-9]+-[0-9]+$"},
+    "phase": {"type": "string"},
+    "applied": {"type": "boolean"},
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "phase"],
+      "properties": {
+        "code": {"type": "string"},
+        "phase": {"type": "string"},
+        "exit_code": {"type": "integer"},
+        "retryable": {"type": "boolean"}
+      }
+    }
+  }
+}

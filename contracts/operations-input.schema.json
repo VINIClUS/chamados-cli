@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/VINIClUS/chamados-cli/contracts/operations-input.schema.json",
+  "title": "Chamados operation input",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["operation", "environment", "ref", "tail"],
+  "properties": {
+    "operation": {"type": "string", "enum": ["deploy", "status", "logs", "health", "smoke", "restart", "reset", "backup", "restore", "cleanup"]},
+    "environment": {"type": "string", "enum": ["staging", "production"]},
+    "ref": {"type": "string", "minLength": 1},
+    "service": {"type": "string", "enum": ["chamados-backend", "chamados-frontend", "chamados-postgresql"]},
+    "tail": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "backup_id": {"type": "string", "pattern": "^[0-9]{14}\\.[0-9]+$"},
+    "confirm": {"type": "string", "enum": ["staging", "production"]}
+  }
+}

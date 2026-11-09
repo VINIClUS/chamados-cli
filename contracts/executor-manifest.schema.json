@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/VINIClUS/chamados-cli/contracts/executor-manifest.schema.json",
+  "title": "Chamados executor artifact manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol", "executor_sha", "sha256", "os", "arch"],
+  "properties": {
+    "protocol": {"const": 1},
+    "executor_sha": {"type": "string", "pattern": "^[a-fA-F0-9]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+    "os": {"const": "linux"},
+    "arch": {"const": "amd64"}
+  }
+}

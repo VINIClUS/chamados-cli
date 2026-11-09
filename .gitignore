@@ -1,0 +1,7 @@
+/.cli-dist/
+/.ops-target/
+/.ops-source/
+/.ops-executor/
+/.ops-data.json
+/operation-result.json
+/.quality/
